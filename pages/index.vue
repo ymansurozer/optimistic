@@ -6,7 +6,7 @@ const {
   createMutation: { formData, mutate: createTodo },
   updateMutation: { mutate: updateTodo },
   deleteMutation: { mutate: deleteTodo },
-} = useOptimistic<Todo>({
+} = useOptimisticList<Todo>({
   queryKey: ['todos'],
   operations: {
     fetch: () => $fetch('/api/todos'),

@@ -15,37 +15,28 @@ const { mutate } = useMutation({
   mutation: (data: Omit<Todo, 'id'>) => $fetch('/api/todos', { method: 'POST', body: { todo: data } }),
 
   onMutate: async (newData) => {
-    // Reset form to allow the user to create new items right away
-    formData.value = {
-      text: '',
-      completed: false,
+    try {
+      formData.value = {
+        text: '',
+        completed: false,
+      }
+
+      const oldList = queryCache.getQueryData<Todo[]>(['todos']) || []
+      const newItem = {
+        ...(newData || []),
+        id: (-Date.now()).toString(),
+      }
+      const newList = [...oldList, newItem]
+      queryCache.setQueryData(['todos'], newList)
+      queryCache.cancelQueries({ key: ['todos'], exact: true })
+
+      // Pass the old and new data to other hooks to handle rollbacks
+      console.log('>> Context from onMutate', { oldList, newItem, newList })
+      return { oldList, newItem, newList }
     }
-
-    // Take a snapshot of the list before the mutation
-    const oldList = queryCache.getQueryData<Todo[]>(['todos']) || []
-
-    // Create an optimistic item with a negative id to differentiate them from the server ones
-    const newItem = {
-      ...(newData || []),
-      id: (-Date.now()).toString(),
+    catch (error) {
+      console.log('>> Error in onMutate', error)
     }
-
-    // Create a new list with the optimistic item
-    const newList = [...oldList, newItem]
-
-    // Update the cache with the new todo list
-    queryCache.setQueryData(['todos'], newList)
-
-    // console.log('>> Updating cache with new optimistic list')
-
-    // TODO: Handle saving indicator for the optimistic item
-
-    // Cancel (without refetching) the query so that it doesn't override the optimistic update
-    queryCache.cancelQueries({ key: ['todos'], exact: true })
-
-    // Pass the old and new data to other hooks to handle rollbacks
-    console.log('>> Context from onMutate', oldList, newItem, newList)
-    return { oldList, newItem, newList }
   },
 
   onSuccess(data, vars, context) {
@@ -66,29 +57,20 @@ const { mutate } = useMutation({
     queryCache.setQueryData(['todos'], copy)
   },
 
-  onError: (error, variables, context) => {
-    console.warn('>> Rolling back optimistic item')
+  onError: (error, variables, { oldList, newItem, newList }) => {
     // FIXME: Context is not here
-    console.log('>> Context from onError', context)
+    console.log('>> Context from onError', { oldList, newItem, newList })
+    console.log('>> Variables', variables)
 
-    // oldList can be undefined if onMutate errors.
-    // We also want to check if the oldList is still in the cache
-    // because the cache could have been updated by another query.
-    if (!!context.newList && context.newList === queryCache.getQueryData<Todo[]>(['todos'])) {
+    if (!!newList && newList === queryCache.getQueryData<Todo[]>(['todos'])) {
       console.log('>> Will rollback')
-      queryCache.setQueryData(['todos'], context.oldList)
+      queryCache.setQueryData(['todos'], oldList)
     }
 
-    formData.value = structuredClone(context.newItem || variables)
-
-    // TODO: Handle error
-    console.error(error)
+    formData.value = structuredClone(newItem || variables)
   },
 
   onSettled: () => {
-    // console.log('>> Invalidate query to refetch the new data')
-
-    // Invalidate the query to refetch the new data in any case
     queryCache.invalidateQueries({ key: ['todos'] })
   },
 })

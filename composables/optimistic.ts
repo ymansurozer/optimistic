@@ -1,4 +1,3 @@
-// queries/crud.ts
 import { defineQuery, defineMutation, useQueryCache } from '@pinia/colada'
 
 export interface OptimisticOptions<T, TId = string> {
@@ -269,7 +268,7 @@ export const defineDeleteMutation = <T extends { id: TId }, TId = string>(
 })
 
 // Main composable that uses all the defined queries and mutations
-export function useOptimistic<T extends { id: TId }, TId = string>(
+export function useOptimisticList<T extends { id: TId }, TId = string>(
   options: OptimisticOptions<T, TId>,
 ) {
   const useList = defineListQuery(options)
