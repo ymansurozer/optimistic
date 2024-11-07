@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   // wait for 2 seconds
   await new Promise(resolve => setTimeout(resolve, 2000))
 
-  throw createError('Test error')
+  // throw createError('Test error')
 
   // Get todo from request body
   const { todo } = await readBody<TodoPostBody>(event)

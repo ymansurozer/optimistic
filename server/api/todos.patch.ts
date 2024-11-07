@@ -4,7 +4,7 @@ import type { Todo } from '~/types'
 
 export default defineEventHandler(async (event) => {
   // wait for 2 seconds
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise(resolve => setTimeout(resolve, 5000))
 
   // Get todo from request body
   const { id, updates } = await readBody<{ id: string, updates: Partial<Todo> }>(event)

@@ -4,6 +4,8 @@ import { defineEventHandler } from 'h3'
 import type { Todo } from '~/types'
 
 export default defineEventHandler(async () => {
+  console.log('>> Server\t', new Date().toTimeString().split(' ')[0])
+
   // Wait for 2 seconds
   await new Promise(resolve => setTimeout(resolve, 2000))
 

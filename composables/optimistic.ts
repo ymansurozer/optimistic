@@ -5,6 +5,7 @@ export interface OptimisticOptions<T, TId = string> {
   operations: CrudOperations<T, TId>
   defaultFormData: Omit<T, 'id'>
   staleTime?: number
+  autoRefetch?: boolean
   verbose?: boolean
 }
 
@@ -23,6 +24,10 @@ export const defineListQuery = <T extends { id: TId }, TId = string>(
     key: options.queryKey,
     query: options.operations.fetch,
     staleTime: options.staleTime || 5000,
+    autoRefetch: options.autoRefetch,
+    retry: {
+      retry: 3,
+    },
   })
   return query
 })
@@ -280,6 +285,24 @@ export function useOptimisticList<T extends { id: TId }, TId = string>(
   const createMutation = useCreate()
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
+
+  // We want to prevent the user from leaving the page if a mutation is pending
+  const isMutationPending = computed(() => createMutation.isLoading.value || updateMutation.isLoading.value || deleteMutation.isLoading.value)
+
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (isMutationPending.value) {
+      // alert('Please wait for pending changes to be saved before leaving the page.')
+      e.preventDefault()
+      return ''
+    }
+  }
+
+  if (import.meta.client) {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    onBeforeUnmount(() => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    })
+  }
 
   return {
     query,

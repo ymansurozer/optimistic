@@ -4,6 +4,8 @@ import type { Todo } from '~/types'
 const { state } = useQuery({
   key: ['todos'],
   query: () => $fetch('/api/todos'),
+  staleTime: 5000,
+  autoRefetch: true,
 })
 
 const formData = ref<Omit<Todo, 'id'>>({
