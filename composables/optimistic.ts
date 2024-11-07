@@ -275,29 +275,15 @@ export function useOptimisticList<T extends { id: TId }, TId = string>(
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
 
+  // Can be used to handle common pending states, like showing a loading indicator
   const isMutationPending = computed(() => createMutation.isLoading.value || updateMutation.isLoading.value || deleteMutation.isLoading.value)
-  const hasError = computed(() => createMutation.error.value || updateMutation.error.value || deleteMutation.error.value)
-
-  // We show a saving UI clue when a mutation is pending
-  watch(isMutationPending, (value) => {
-    if (value) {
-      // TODO
-      console.log('Handle saving UI clue here')
-    }
-  })
-
-  // We handle errors in the UI
-  watch(hasError, (value) => {
-    if (value) {
-      // TODO
-      console.log('Handle error in the UI')
-    }
-  })
+  
+  // Can be used to handle common errors
+  const hasMutationError = computed(() => createMutation.error.value || updateMutation.error.value || deleteMutation.error.value)
 
   // Prevent the user from leaving the page if a mutation is pending
   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
     if (isMutationPending.value) {
-      // alert('Please wait for pending changes to be saved before leaving the page.')
       e.preventDefault()
       return ''
     }
@@ -315,5 +301,7 @@ export function useOptimisticList<T extends { id: TId }, TId = string>(
     createMutation,
     updateMutation,
     deleteMutation,
+    isMutationPending,
+    hasMutationError,
   }
 }

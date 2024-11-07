@@ -6,6 +6,8 @@ const {
   createMutation: { formData, mutate: createTodo },
   updateMutation: { mutate: updateTodo },
   deleteMutation: { mutate: deleteTodo },
+  isMutationPending,
+  hasMutationError,
 } = useOptimisticList<Todo>({
   queryKey: ['todos'],
   operations: {
@@ -22,10 +24,16 @@ const {
   autoRefetch: true,
   verbose: true,
 })
+
+watch(hasMutationError, (value) => {
+  if (value) {
+    console.error(hasMutationError.value)
+  }
+})
 </script>
 
 <template>
-  <div class="space-y-12">
+  <div class="space-y-12 relative">
     <div class="flex gap-2 w-full">
       <UInput
         v-model="formData.text"
@@ -51,6 +59,18 @@ const {
           { label: 'Mark as completed', variant: 'soft', click: () => updateTodo({ id: todo.id, data: { completed: true } }) },
           { label: 'Delete', variant: 'soft', color: 'red', click: () => deleteTodo(todo.id) },
         ]"
+      />
+    </div>
+
+    <div class="flex w-full justify-center">
+      <UButton
+        v-if="isMutationPending"
+        size="xs"
+        label="Saving changes..."
+        leading-icon="i-svg-spinners-ring-resize"
+        variant="soft"
+        color="primary"
+        :disabled="true"
       />
     </div>
   </div>
