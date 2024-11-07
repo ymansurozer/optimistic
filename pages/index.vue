@@ -19,8 +19,8 @@ const {
     completed: false,
   },
   staleTime: 5000,
-  verbose: true,
   autoRefetch: true,
+  verbose: true,
 })
 </script>
 

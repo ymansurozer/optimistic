@@ -66,8 +66,6 @@ export const defineCreateMutation = <T extends { id: TId }, TId = string>(
         console.log(`>> ${options.queryKey.join('.')}: Updating cache with new optimistic list`)
       }
 
-      // TODO: Handle saving indicator for the optimistic item
-
       // Cancel (without refetching) the query so that it doesn't override the optimistic update
       queryCache.cancelQueries({ key: options.queryKey, exact: true })
 
@@ -99,8 +97,6 @@ export const defineCreateMutation = <T extends { id: TId }, TId = string>(
       if (options.verbose) {
         console.warn(`>> ${options.queryKey.join('.')}: Rolling back optimistic item`)
       }
-      // FIXME: Context is not here
-      console.log('>> Context', context)
 
       // oldList can be undefined if onMutate errors.
       // We also want to check if the oldList is still in the cache
@@ -112,7 +108,6 @@ export const defineCreateMutation = <T extends { id: TId }, TId = string>(
 
       formData.value = structuredClone(context.newItem || variables)
 
-      // TODO: Handle error
       console.error(error)
     },
 
@@ -169,8 +164,6 @@ export const defineUpdateMutation = <T extends { id: TId }, TId = string>(
         console.log(`>> ${options.queryKey.join('.')}: Updating cache with new optimistic list`)
       }
 
-      // TODO: Handle saving indicator for the optimistic item
-
       // Cancel (without refetching) the query so that it doesn't override the optimistic update
       queryCache.cancelQueries({ key: options.queryKey, exact: true })
 
@@ -189,7 +182,6 @@ export const defineUpdateMutation = <T extends { id: TId }, TId = string>(
         queryCache.setQueryData(options.queryKey, context.oldList)
       }
 
-      // TODO: Handle error
       console.error(error)
     },
 
@@ -235,8 +227,6 @@ export const defineDeleteMutation = <T extends { id: TId }, TId = string>(
         console.log(`>> ${options.queryKey.join('.')}: Updating cache with new optimistic list`)
       }
 
-      // TODO: Handle saving indicator for the optimistic item
-
       // Cancel (without refetching) the query so that it doesn't override the optimistic update
       queryCache.cancelQueries({ key: options.queryKey, exact: true })
 
@@ -255,7 +245,6 @@ export const defineDeleteMutation = <T extends { id: TId }, TId = string>(
         queryCache.setQueryData(options.queryKey, context.oldList)
       }
 
-      // TODO: Handle error
       console.error(error)
     },
 
@@ -286,9 +275,26 @@ export function useOptimisticList<T extends { id: TId }, TId = string>(
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
 
-  // We want to prevent the user from leaving the page if a mutation is pending
   const isMutationPending = computed(() => createMutation.isLoading.value || updateMutation.isLoading.value || deleteMutation.isLoading.value)
+  const hasError = computed(() => createMutation.error.value || updateMutation.error.value || deleteMutation.error.value)
 
+  // We show a saving UI clue when a mutation is pending
+  watch(isMutationPending, (value) => {
+    if (value) {
+      // TODO
+      console.log('Handle saving UI clue here')
+    }
+  })
+
+  // We handle errors in the UI
+  watch(hasError, (value) => {
+    if (value) {
+      // TODO
+      console.log('Handle error in the UI')
+    }
+  })
+
+  // Prevent the user from leaving the page if a mutation is pending
   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
     if (isMutationPending.value) {
       // alert('Please wait for pending changes to be saved before leaving the page.')
